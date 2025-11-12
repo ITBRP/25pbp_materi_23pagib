@@ -1,67 +1,63 @@
-<?php
-// validasi cek method
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(
-        [
-            'status' => 'error',
-            'msg' => 'Method Salah !',
-            'errors' => []
-        ]
-    );
-    exit;
-}
-
-// Mempersiapkan datanya dan variabel $data 
+<?php 
 header("Content-Type: application/json; charset=UTF-8");
-$input = file_get_contents("php://input");
-$data = json_decode($input, true);
-
-// validasi error
-$errors = [];
-if (!isset($data['nim'])) {
-    $errors['nim'] = "Data NIM tidak ada";
-} else {
-    if ($data['nim'] == '') {
-        $errors['nim'] = "Data NIM tidak boleh kosong";
-    }
-}
-
-if (!isset($data['nama'])) {
-    $errors['nama'] = "Data NAMA tidak ada";
-} else {
-    if ($data['nama'] == '') {
-        $errors['nama'] = "Data NAMA tidak boleh kosong";
-    }
-}
-
-
-if (count($errors) == 0) {
-    // koneksi
-    // $koneksi = mysqli_connect('localhost', 'root','', 'PBP_PAGIA');
-    $koneksi = new mysqli('localhost', 'root','', '25_PBP_PAGIB_23');
-    // insert
-    $nim = $data['nim'];
-    $nama = $data['nama'];
-    $q = "INSERT INTO mahasiswa (nim, nama) VALUES('$nim','$nama')";
-    // mysqli_query($koneksi, $q);
-    $koneksi->query($q);
-    $dataResponse = [
-        'status' => 'success',
-        'msg' => 'Data baru berhasil dibuat',
-        'data' => [
-            'id' => $koneksi->insert_id,
-            'nim' => $data['nim'],
-            'nama' => $data['nama']
-        ]
-    ];
-} else {
-    $dataResponse = [
+if($_SERVER['REQUEST_METHOD'] != 'POST'){
+    http_response_code(405);
+    $res = [
         'status' => 'error',
-        'msg' => 'Validasi Error',
+        'msg' => 'Method salah !'
+    ];
+    echo json_encode($res);
+    exit();
+}
+
+// block jika method nya benar
+$errors = [];
+if(!isset($_POST['nama'])){
+    $errors['nama'] = "Nama wajib dikirim";
+}else{
+    if($_POST['nama']==''){
+        $errors['nama'] = "Nama tidak boleh kosong";
+    }
+}
+if(!isset($_POST['nim'])){
+    $errors['nim'] = "NIM wajib dikirim";
+}else{
+    if($_POST['nim']==''){
+        $errors['nim'] = "NIM tidak boleh kosong";
+    }else{
+        if(!preg_match('/^[1-9][0-9]{9}$/', $_POST['nim'])){
+            $errors['nim'] = "Format NIM salah, harus angka semua minimal dan max 10 digit dan angka awal tidak boleh 0";
+        }
+    }
+}
+
+if(count($errors)>0){
+    http_response_code(400);
+    $res = [
+        'status' => 'error',
+        'msg' => 'Data error',
         'errors' => $errors
     ];
-    http_response_code(400);
+    echo json_encode($res);
+    exit();
 }
 
-echo json_encode($dataResponse);
+// insert ke db
+$koneksi = new mysqli('localhost', 'root','', '4PAGIB');
+$nama = $_POST['nama'];
+$nim = $_POST['nim'];
+$q = "INSERT INTO mhs(nama, nim) VALUES('$nama','$nim')";
+$koneksi->query($q);
+$id = $koneksi->insert_id;
+
+echo json_encode([
+    'status' => "ok",
+    'msg' => "Proses berhasil",
+    'data' => [
+        'id' => $id,
+        'nama' => $nama,
+        'nim' => $nim
+    ]
+]);
+
+
