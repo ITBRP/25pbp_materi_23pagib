@@ -10,14 +10,22 @@
 
 <body>
 
+
     <form id="myForm" enctype="multipart/form-data">
         <div>
             <label for="">NIM</label> <br>
             <input type="text" name="nim" id="nim">
+            <span class="error nim" style="color: red;"></span>
         </div>
         <div>
             <label for="">Nama</label> <br>
             <input type="text" name="nama" id="nama">
+            <span class="error nama" style="color: red;"></span>
+        </div>
+        <div>
+            <label for="">Photo</label> <br>
+            <input type="file" name="photo" id="photo">
+            <span class="error photo" style="color: red;"></span>
         </div>
         <div>
             <button type="submit">Simpan</button>
@@ -25,26 +33,30 @@
     </form>
 
     <script>
+
         $(document).on("submit", "#myForm", function (e) {
             e.preventDefault();
             let formData = new FormData(this);
+            
             $.ajax({
                 url: "http://localhost:800/www/2526_ganjil/25pbp_23pagib/be/create_formdata.php",
                 type: "POST",
                 data: formData,
                 contentType: false,
                 processData: false,
-                success: function (res) {
-                    alert('sukses');
-                    // $("#response").html(
-                    //     "<pre style='color:green;'>" + JSON.stringify(res, null, 2) + "</pre>"
-                    // );
+                beforeSend: function(){
+                    $('.error').text('');
                 },
-                error: function (xhr) {
-                    alert('gagal');
-                    // $("#response").html(
-                    //     "<pre style='color:red;'>" + xhr.responseText + "</pre>"
-                    // );
+                success: function (res) {
+                    alert(res.msg+', Data dengan NIM '+res.data.nim+' berhasil ditambahkan');
+                    $('#myForm').trigger('reset');
+                },
+                error: function (res) {
+                    let response = res.responseJSON;
+
+                    Object.entries(response.errors).forEach(([key, val]) => {
+                        $(`.${key}`).text(val);
+                    });
                 }
             });
         });
