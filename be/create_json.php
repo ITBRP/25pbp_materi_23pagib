@@ -1,6 +1,5 @@
 <?php 
 header("Content-Type: application/json; charset=UTF-8");
-http_response_code(500);
 
 if($_SERVER['REQUEST_METHOD'] != 'POST'){
     http_response_code(405);
@@ -30,7 +29,7 @@ if(!isset($data['nim'])){
     if($data['nim']==''){
         $errors['nim'] = "NIM tidak boleh kosong";
     }else{
-        if(!preg_match('/^[1-9][0-9]{9}$/', $data['nim'])){
+        if(!preg_match('/^[1-9][0-9]{2}$/', $data['nim'])){
             $errors['nim'] = "Format NIM salah, harus angka semua minimal dan max 10 digit dan angka awal tidak boleh 0";
         }
     }
